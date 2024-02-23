@@ -7,7 +7,7 @@ const prisma = new PrismaClient();
 export default async function Home() {
   const allUsers = await prisma.user.findMany();
   console.dir(allUsers, { depth: null });
-  const bobId = "65d15f7803c9c3781dcb8dec";
+  const bobId = "65d3dd73ed1f98ea769d78ec";
   return (
     <div className="m-8">
       <h1 className="text-xl font-bold">ユーザ一覧</h1>
@@ -17,7 +17,7 @@ export default async function Home() {
           <li key={user.id}>
             <span>{user.name}</span>
             <div>
-              {user.followedByIDs.includes("65d15f7803c9c3781dcb8dec") ? (
+              {user.followedByIDs.includes("65d3dd73ed1f98ea769d78ec") ? (
                 <UnfollowButton bobId={bobId} id={user.id} />
               ) : (
                 <FollowButton bobId={bobId} id={user.id} />
