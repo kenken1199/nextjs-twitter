@@ -1,32 +1,67 @@
 "use server";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { SessionData, defaultSession, sessionOptions } from "./lib";
+import { getIronSession } from "iron-session";
+import { cookies } from "next/headers";
+import { z } from "zod";
+import * as bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
-// import { signIn } from "@/auth";
-// import { AuthError } from "next-auth";
+export const getSession = async () => {
+  const session = await getIronSession<SessionData>(cookies(), sessionOptions);
 
-// // ...
+  if (!session.isLoggedIn) {
+    session.isLoggedIn = defaultSession.isLoggedIn;
+  }
+  return session;
+};
+export const login = async (formData: FormData) => {
+  const session = await getSession();
+  const formEmail = formData.get("email") as string;
+  const formPassword = formData.get("password") as string;
 
-// export async function authenticate(
-//   prevState: string | undefined,
-//   formData: FormData
-// ) {
-//   try {
-//     await signIn("credentials", formData);
-//   } catch (error) {
-//     if (error instanceof AuthError) {
-//       switch (error.type) {
-//         case "CredentialsSignin":
-//           return "Invalid credentials from actions.ts";
-//         default:
-//           return "Something went wrong.";
-//       }
-//     }
-//     throw error;
-//   }
-// }
+  const data = { email: formEmail, password: formPassword };
+
+  async function getUser(email: string): Promise<User | null> {
+    try {
+      const user = await prisma.user.findUnique({
+        where: {
+          email: email,
+        },
+      });
+      return user;
+    } catch (error) {
+      console.error("Failed to fetch user:", error);
+      throw new Error("Failed to fetch user.");
+    }
+  }
+
+  const parsedCredentials = z
+    .object({ email: z.string().email(), password: z.string().min(5) })
+    .safeParse(data);
+
+  async function loginCheck() {
+    if (parsedCredentials.success) {
+      const { email, password } = parsedCredentials.data;
+      const user = await getUser(email);
+      if (!user) return null;
+      if (!user.passwd) return null;
+      const passwordsMatch = await bcrypt.compare(password, user.passwd);
+
+      if (passwordsMatch) return user;
+    }
+    console.log("Invalid credentials from auth.ts");
+    return null;
+  }
+
+  const user = loginCheck();
+  console.log(user);
+};
+
+export const logout = async () => {};
+
 export const follow = async (authid: string, followid: string) => {
   const authuser = await prisma.user.findUnique({
     where: {
@@ -64,7 +99,7 @@ export const follow = async (authid: string, followid: string) => {
     },
   });
 
-  revalidatePath("/");
+  revalidatePath("/home");
 };
 
 export const unfollow = async (authid: string, followid: string) => {
@@ -108,5 +143,5 @@ export const unfollow = async (authid: string, followid: string) => {
     },
   });
 
-  revalidatePath("/");
+  revalidatePath("/home");
 };
