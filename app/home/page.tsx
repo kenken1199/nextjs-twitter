@@ -4,6 +4,7 @@ import UnfollowButton from "../ui/unfollow-button";
 import LogoutForm from "../ui/logoutForm";
 import { getSession } from "../lib/actions";
 import { redirect } from "next/navigation";
+import AddPost from "../ui/addPost";
 
 const prisma = new PrismaClient();
 
@@ -12,14 +13,50 @@ export default async function Home() {
   if (!session.isLoggedIn) {
     redirect("/login");
   }
+  const authId = session?.userId;
+
+  const authUser = await prisma.user.findUnique({
+    where: {
+      id: authId,
+    },
+  });
+
+  const allPosts = await prisma.post.findMany({
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const allPostsUsersIds = [...(authUser?.followingIDs || [])];
+  allPostsUsersIds.push(authId);
+
+  const followingUsersAllPosts = await prisma.post.findMany({
+    where: {
+      OR: allPostsUsersIds?.map((id) => ({
+        authorId: id,
+      })),
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
   const allUsers = await prisma.user.findMany();
-  // console.dir(allUsers, { depth: null });
-  const authId = session.userId;
+
+  const ownPosts = await prisma.post.findMany({
+    where: {
+      authorId: authId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return (
     <div className="m-8">
       <h1 className="text-xl font-bold">ユーザ一覧</h1>
       <div>{session.username}のページ</div>
+      <AddPost />
       <ul className="mt-8">
         {allUsers.map((user) => (
           <li key={user.id}>
@@ -33,6 +70,40 @@ export default async function Home() {
                 <FollowButton authId={authId} id={user.id} />
               )}
             </div>
+          </li>
+        ))}
+      </ul>
+
+      <h1 className="text-xl font-bold">自分のPost一覧</h1>
+      <ul className="mb-8">
+        {ownPosts.map((post) => (
+          <li key={post.id}>
+            <div>{post.title}</div>
+          </li>
+        ))}
+      </ul>
+      {/* <h1 className="text-xl font-bold">followinpost一覧</h1>
+      <ul className="mt-8">
+        {followingUsersPosts.map((post) => (
+          <li key={post.id}>
+            <div>{post.title}</div>
+          </li>
+        ))}
+      </ul> */}
+
+      <h1 className="text-xl font-bold">自分とフォロワーのPost一覧</h1>
+      <ul className="mb-8">
+        {followingUsersAllPosts.map((post) => (
+          <li key={post.id}>
+            <div>{post.title}</div>
+          </li>
+        ))}
+      </ul>
+      <h1 className="text-xl font-bold">全てのPost一覧</h1>
+      <ul className="mb-8">
+        {allPosts.map((post) => (
+          <li key={post.id}>
+            <div>{post.title}</div>
           </li>
         ))}
       </ul>
