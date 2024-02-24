@@ -1,7 +1,7 @@
 import { follow } from "../lib/actions";
 
-const FollowButton = ({ bobId, id }) => {
-  const followWithId = follow.bind(null, bobId, id);
+const FollowButton = ({ authId, id }) => {
+  const followWithId = follow.bind(null, authId, id);
 
   return (
     <form action={followWithId}>

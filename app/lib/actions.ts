@@ -65,7 +65,7 @@ export const login = async (formData: FormData) => {
     session.isLoggedIn = true;
   }
   await session.save();
-  redirect("/");
+  redirect("/home");
 };
 
 export const logout = async () => {

@@ -1,7 +1,7 @@
 import { unfollow } from "../lib/actions";
 
-const UnfollowButton = ({ bobId, id }) => {
-  const unfollowWithId = unfollow.bind(null, bobId, id);
+const UnfollowButton = ({ authId, id }) => {
+  const unfollowWithId = unfollow.bind(null, authId, id);
 
   return (
     <form action={unfollowWithId}>
