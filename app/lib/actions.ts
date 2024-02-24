@@ -6,6 +6,7 @@ import { getIronSession } from "iron-session";
 import { cookies } from "next/headers";
 import { z } from "zod";
 import * as bcrypt from "bcryptjs";
+import { redirect } from "next/navigation";
 
 const prisma = new PrismaClient();
 
@@ -56,11 +57,22 @@ export const login = async (formData: FormData) => {
     return null;
   }
 
-  const user = loginCheck();
-  console.log(user);
+  const user = await loginCheck();
+  // console.log(user);
+  if (user?.id && user?.name) {
+    session.userId = user?.id;
+    session.username = user?.name;
+    session.isLoggedIn = true;
+  }
+  await session.save();
+  redirect("/");
 };
 
-export const logout = async () => {};
+export const logout = async () => {
+  const session = await getSession();
+  session.destroy();
+  redirect("/");
+};
 
 export const follow = async (authid: string, followid: string) => {
   const authuser = await prisma.user.findUnique({
