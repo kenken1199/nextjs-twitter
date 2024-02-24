@@ -18,6 +18,25 @@ export const getSession = async () => {
   }
   return session;
 };
+
+export const siginUp = async (formData: FormData) => {
+  const formUsername = formData.get("username") as string;
+  const formEmail = formData.get("email") as string;
+  const formPassword = formData.get("password") as string;
+
+  const hashedPassword = await bcrypt.hash(formPassword, 10);
+
+  await prisma.user.create({
+    data: {
+      name: formUsername,
+      passwd: hashedPassword,
+      email: formEmail,
+    },
+  });
+
+  redirect("/login");
+};
+
 export const login = async (formData: FormData) => {
   const session = await getSession();
   const formEmail = formData.get("email") as string;
