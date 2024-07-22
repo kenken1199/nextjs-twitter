@@ -1,6 +1,9 @@
 import { unfollow } from "../lib/actions";
-
-const UnfollowButton = ({ authId, id }) => {
+interface AppProps {
+  authId: string;
+  id: string;
+}
+const UnfollowButton = ({ authId, id }: AppProps) => {
   const unfollowWithId = unfollow.bind(null, authId, id);
 
   return (

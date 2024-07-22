@@ -13,7 +13,7 @@ export default async function Home() {
   if (!session.isLoggedIn) {
     redirect("/login");
   }
-  const authId = session?.userId;
+  const authId = session?.userId as string;
 
   const authUser = await prisma.user.findUnique({
     where: {
@@ -54,14 +54,16 @@ export default async function Home() {
 
   return (
     <div className="m-8">
-      <h1 className="text-xl font-bold">ユーザ一覧</h1>
       <div>{session.username}のページ</div>
       <AddPost />
       <ul className="mt-8">
+        <h1 className="text-xl font-bold">ユーザ一覧</h1>
         {allUsers.map((user) => (
-          <li key={user.id}>
-            <span>{user.id.includes(authId) ? <div></div> : user.name}</span>
-            <div>
+          <li className="flex mb-3" key={user.id}>
+            <span className="w-24">
+              {user.id.includes(authId) ? <div></div> : user.name}
+            </span>
+            <div className="ml-16">
               {user.id.includes(authId) ? (
                 <div></div>
               ) : user.followedByIDs.includes(authId) ? (
@@ -74,7 +76,7 @@ export default async function Home() {
         ))}
       </ul>
 
-      <h1 className="text-xl font-bold">自分のPost一覧</h1>
+      <h1 className="mt-8 text-xl font-bold">自分のPost一覧</h1>
       <ul className="mb-8">
         {ownPosts.map((post) => (
           <li key={post.id}>

@@ -43,7 +43,7 @@ export const addPost = async (formData: FormData) => {
   await prisma.post.create({
     data: {
       title: formPost,
-      authorId: session.userId,
+      authorId: session.userId as string,
     },
   });
 

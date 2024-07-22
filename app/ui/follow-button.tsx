@@ -1,6 +1,9 @@
 import { follow } from "../lib/actions";
-
-const FollowButton = ({ authId, id }) => {
+interface AppProps {
+  authId: string;
+  id: string;
+}
+const FollowButton = ({ authId, id }: AppProps) => {
   const followWithId = follow.bind(null, authId, id);
 
   return (
