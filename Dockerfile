@@ -1,21 +1,19 @@
-FROM node:18-alpine AS build
+FROM node:18-alpine
 
+# Create app directory
 WORKDIR /app
-COPY package*.json ./
-COPY prisma ./prisma/
-RUN npm ci
+
+# Bundle files
 COPY . .
-RUN npm run build
 
-FROM node:18-alpine AS runtime
+#Update npm
+RUN npm install -g npm@latest
 
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-COPY --from=build /app/.next ./.next
-COPY --from=build /app/public ./public
+# Install dependencies
+RUN npm install
 
+# Expose port 3000
 EXPOSE 3000
-USER node
-RUN npx prisma generate
-CMD ["npm", "start"]
+
+# Start app
+CMD source migrate-and-start.sh
