@@ -1,5 +1,5 @@
 "use server";
-import { PrismaClient, User } from "@prisma/client";
+import { PrismaClient, User, Post } from "@prisma/client";
 import { revalidatePath } from "next/cache";
 import { SessionData, defaultSession, sessionOptions } from "./lib";
 import { getIronSession } from "iron-session";
@@ -18,6 +18,38 @@ export const getSession = async () => {
   }
   return session;
 };
+
+export const siginUp = async (formData: FormData) => {
+  const formUsername = formData.get("username") as string;
+  const formEmail = formData.get("email") as string;
+  const formPassword = formData.get("password") as string;
+
+  const hashedPassword = await bcrypt.hash(formPassword, 10);
+
+  await prisma.user.create({
+    data: {
+      name: formUsername,
+      password: hashedPassword,
+      email: formEmail,
+    },
+  });
+
+  redirect("/login");
+};
+
+export const addPost = async (formData: FormData) => {
+  const formPost = formData.get("text") as string;
+  const session = await getSession();
+  await prisma.post.create({
+    data: {
+      title: formPost,
+      authorId: session.userId as string,
+    },
+  });
+
+  redirect("/home");
+};
+
 export const login = async (formData: FormData) => {
   const session = await getSession();
   const formEmail = formData.get("email") as string;
@@ -48,8 +80,8 @@ export const login = async (formData: FormData) => {
       const { email, password } = parsedCredentials.data;
       const user = await getUser(email);
       if (!user) return null;
-      if (!user.passwd) return null;
-      const passwordsMatch = await bcrypt.compare(password, user.passwd);
+      if (!user.password) return null;
+      const passwordsMatch = await bcrypt.compare(password, user.password);
 
       if (passwordsMatch) return user;
     }
