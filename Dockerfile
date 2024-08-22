@@ -17,4 +17,5 @@ COPY --from=build /app/public ./public
 
 EXPOSE 3000
 USER node
+RUN npx prisma generate
 CMD ["npm", "start"]
