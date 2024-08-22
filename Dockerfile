@@ -4,7 +4,6 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY . .
-RUN prisma generate
 RUN npm run build
 
 FROM node:18-alpine AS runtime
